@@ -85,6 +85,29 @@ public class JsonTest {
         assertEquals(actual, expected);
     }
 
+	@Test()
+	public void demonstrateJsonStringInjectionSecurityIssue() throws SerializeException {
+		Zoo.Animal animal = new Zoo.Animal();
+		// will not be sanitized, end's up 1:1 in the JSON payload
+		animal.kind = "some animal\",\"hacked\":true,\"amount\":0,\"fieldJustNeededForPadding\":\"";
+
+		String expected = "{\"kind\":\"\\\t\"}";    // expect a backslash escape character to be prepended
+
+		String s = new Json().serialize(animal);
+		assertEquals(s, expected);
+	}
+
+	@Test()
+	public void testEscapingStringsSerialization() throws SerializeException {
+    	Zoo.Animal animal = new Zoo.Animal();
+    	animal.kind = "\"\t";    // quote and tab character as just two examples; many others exist
+
+		String expected = "{\"kind\":\"\\\"\\t\"}";    // expect backslash escape characters to be prepended
+
+		String s = new Json().serialize(animal);
+		assertEquals(s, expected);
+	}
+
     /* Deserialize */
 
     @Test(expectedExceptions = JsonParseException.class)
